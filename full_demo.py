@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 
-# Python code for Multiple Color Detection 
+# Python code for Multiple Color Detection + Integrated with Inverse Kinematics
 
 import numpy as np 
 import cv2 
 import imutils
 import ik
+import time
 
 webcam = cv2.VideoCapture(-1) 
 
-## 140, 113 
-
 MM_TO_PIXEL = 260 / 640
+
+blue_flag = False
+rasp_flag = False
+lem_flag = False
+lim_flag = False
+org_flag = False
 
 # --------------------------------------RASPBERRY COLOR DETECTION---------------------------------------------
 
 def detect_raspberry(imageFrame, position):
+    global rasp_flag
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV) 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)) 
 
@@ -72,6 +78,7 @@ def detect_raspberry(imageFrame, position):
                     # print("Detected Raspberry Color at Position {}: {}".format(position, color))
                     cv2.putText(imageFrame, "Raspberry", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in raspberry box here
+                    rasp_flag = True
                     return
 
     ## contour to track red 2 color
@@ -105,6 +112,7 @@ def detect_raspberry(imageFrame, position):
                     # print("Detected Raspberry Color at Position {}: {}"x.format(position, color))
                     cv2.putText(imageFrame, "Raspberry", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in raspberry box here
+                    rasp_flag = True
                     return
 
                 cv2.drawContours(imageFrame, [contour], -1, (0, 0, 255), 3) #draw contours
@@ -114,6 +122,7 @@ def detect_raspberry(imageFrame, position):
 # --------------------------------------BLUEBERRY COLOR DETECTION---------------------------------------------
 
 def detect_blueberry(imageFrame, position):
+    global blue_flag
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV) 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 
@@ -177,6 +186,7 @@ def detect_blueberry(imageFrame, position):
                     # print("Detected Blueberry at Position {}: {}".format(position, color))
                     cv2.putText(imageFrame, "Blueberry", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in blueberry box here
+                    blue_flag = True
                     return
 
     ## contour to track blue 2 color
@@ -210,6 +220,7 @@ def detect_blueberry(imageFrame, position):
                     # print("Detected Blueberry at Position {}: {}"x.format(position, color))
                     cv2.putText(imageFrame, "Blueberry", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in blueberry box here
+                    blue_flag = True
                     return
 
                 cv2.drawContours(imageFrame, [contour], -1, (0, 0, 255), 3) #draw contours
@@ -246,6 +257,7 @@ def detect_blueberry(imageFrame, position):
                     # print("Detected Blueberry at Position {}: {}"x.format(position, color))
                     cv2.putText(imageFrame, "Blueberry", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in blueberry box here
+                    blue_flag = True
                     return
 
                 cv2.drawContours(imageFrame, [contour], -1, (0, 0, 255), 3) #draw contours
@@ -257,6 +269,7 @@ def detect_blueberry(imageFrame, position):
 # lines are yellow, lemons are green 
 
 def detect_lemons(imageFrame, position):
+    global lem_flag
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV) 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)) 
 
@@ -311,6 +324,7 @@ def detect_lemons(imageFrame, position):
                     # print("Detected Lemon Color at Position {}: {}".format(position, color))
                     cv2.putText(imageFrame, "Lemon", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in lemon + limes box here
+                    lem_flag = True
                     return
 
     ## contour to track lemon 2 color
@@ -344,6 +358,7 @@ def detect_lemons(imageFrame, position):
                     # print("Detected Lemon Color at Position {}: {}"x.format(position, color))
                     cv2.putText(imageFrame, "Lemon", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in lemon + limes box here // set flag? 
+                    lim_flag = True
                     return
 
                 cv2.drawContours(imageFrame, [contour], -1, (0, 0, 255), 3) #draw contours
@@ -352,6 +367,7 @@ def detect_lemons(imageFrame, position):
 # --------------------------------------LIMES COLOR DETECTION---------------------------------------------
 
 def detect_limes(imageFrame, position):
+    global lim_flag
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV) 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)) 
 
@@ -398,12 +414,13 @@ def detect_limes(imageFrame, position):
                     # print("Detected Lime Color at Position {}: {}".format(position, color))
                     cv2.putText(imageFrame, "Lime", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in lemon + limes box here 
+                    lim_flag = True
                     return
 
 # --------------------------------------ORANGE COLOR DETECTION---------------------------------------------
 
-
 def detect_oranges(imageFrame, position):
+    global org_flag
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV) 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)) 
 
@@ -450,7 +467,28 @@ def detect_oranges(imageFrame, position):
                     # print("Detected Orange Color at Position {}: {}".format(position, color))
                     cv2.putText(imageFrame, "Orange", (cx,cy), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
                     ## put in oranges box here 
+                    org_flag = True
                     return
+
+## MOVEMENT FUNCITONS FROM IK.PY 
+
+
+
+
+# ik.go_to_coor(10,100,50)  # center position 12/7
+
+# time.sleep(0.1)
+
+# ik.go_to_coor(10,205,10) # location to pick up the fruit 12/7
+
+# ik.go_to_coor(20,-10,80) #raspberries 12/7
+
+# ik.go_to_coor(50,60,80) # oranges 12/7 
+
+# ik.go_to_coor(-30,-40,80) #lemons + limes 12/7
+
+# ik.go_to_coor(-120,100,150) #blueberries 12/7
+
 
 # Start a while loop 
 while(1): 
@@ -458,17 +496,71 @@ while(1):
     # Reading the video from the 
     _, imageFrame = webcam.read() 
     
-    x = 140 
-    y = 124
-
+    x = 168 
+    y = 136
+    position = (x, y)
     ## create a range of +- 15 in case it moves around
 
-    detect_blueberry(imageFrame, (x, y))
-    detect_raspberry(imageFrame, (x, y))
-    detect_lemons(imageFrame, (x, y))
-    detect_limes(imageFrame, (x, y))
-    detect_oranges(imageFrame, (x, y))
+# for i in range(x - 15, x + 15): 
 
+#     for j in range(y - 15, y + 15): 
+
+        # position = (i, j) # adjusted function
+    
+        # functions for each fruit box
+    
+    detect_blueberry(imageFrame, position) 
+    if blue_flag: 
+        #blue movemnet funtion
+        _, imageFrame = webcam.read() 
+        ik.blueberries()
+        time.sleep(3)
+        _, imageFrame = webcam.read() 
+        print('blue')
+        blue_flag = False
+        _, imageFrame = webcam.read() 
+        time.sleep(3)
+
+    detect_raspberry(imageFrame, position) 
+    if rasp_flag: 
+        #rasp movemnet funtion
+        _, imageFrame = webcam.read() 
+        ik.raspberries()
+        time.sleep(3)
+        _, imageFrame = webcam.read() 
+        print('rasp')
+        rasp_flag = False
+        _, imageFrame = webcam.read() 
+        time.sleep(3)
+    
+    detect_lemons(imageFrame, position) 
+    if lem_flag: 
+        #lemon movemnet funtion
+        print('lemon')
+        lem_flag = False
+    
+    detect_limes(imageFrame, position) 
+    if lim_flag: 
+        #limes movemnet funtion
+        print('lim')
+        lim_flag = False
+    
+    detect_oranges(imageFrame, position)
+    if org_flag: 
+        #orange movemnet funtion
+        print('org')
+        org_flag = False
+
+
+
+
+    # detect_blueberry(imageFrame, (x, y))
+    # detect_raspberry(imageFrame, (x, y))
+    # detect_lemons(imageFrame, (x, y))
+    # detect_limes(imageFrame, (x, y))
+    # detect_oranges(imageFrame, (x, y))
+
+    ## need to figure out how we want this quitting thing to work 
     cv2.imshow("Multiple Color Detection in Real-Time", imageFrame) 
     if cv2.waitKey(10) & 0xFF == ord('q'): 
         cap.release() 
