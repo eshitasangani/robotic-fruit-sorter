@@ -19,8 +19,8 @@ import numpy as np
 #-------------- VARIABLES -----------#
 
 GRIPPER = 26
-GRIPPER_OPEN = 1000
-GRIPPER_CLOSE = 2250
+GRIPPER_OPEN = 1500
+GRIPPER_CLOSE = 2500
 
 # shoulder: right servo (when gripper is facing away from you)
 # outstretches the arm
@@ -34,15 +34,15 @@ SHOULDER_RANGE = 2.26893 # rad
 # moves the top part of arm up and down 
 # corresponds to a2
 ELBOW = 13 
-ELBOW_BENT = 750 # -85
-ELBOW_OUT = 2000 # 20
+ELBOW_BENT = 750    
+ELBOW_OUT = 1700		 # 25 degrees from horizontal
 ELBOW_RANGE = 1.8326 # rad
 
 # corresponds to a0
 ROTATE = 16
-ROTATE_MAX = 2250
-ROTATE_MIN = 750
-ROTATE_MID = 1500
+ROTATE_MAX = 2350 # far left (almost pi radians)
+ROTATE_MIN = 700 # far right (0)
+ROTATE_MID = 1500	# mid
 
 pi = pigpio.pi()
 
@@ -54,16 +54,12 @@ pi.set_mode(ROTATE,pigpio.OUTPUT)
 curr_elbow = 0
 curr_shoulder = 0
 curr_gripper = 0
-
-# were from github repo
-# L1 = 80  # shoulder to elbow len
-# L2 = 80  # elbow to wrist len
-# L3 = 68  # len from wrist to hand plus base center to shoulder
-
 ## MEASURED 
 L1 = 105  # shoulder to elbow len
 L2 = 85  # elbow to wrist len
 L3 = 95  # len from wrist to hand plus base center to shoulder
+
+
 
 #-------------- CALCULATIONS FOR MOVEMENT -----------#
 
@@ -71,8 +67,10 @@ L3 = 95  # len from wrist to hand plus base center to shoulder
 def cart2polar(a, b):
 
 	# mag of cartesian coords
-	r = np.sqrt(a*a + b*b)
-	print("cart2polar r = " + str(r))
+	# is math.hypot more accurate?
+	# r = np.sqrt(a*a + b*b)
+	r = math.hypot(a, b)
+	# print("cart2polar r = " + str(r))
 	
 	# don't calculate zero mag
 	if r == 0:
@@ -91,8 +89,10 @@ def cart2polar(a, b):
 	if c < -1:
 		c = -1
 	
-	# calculate angle from 0 to pi 
-	theta = np.arccos(c)
+	# calculate angle from 0 to pi
+	# try math.acos() instead?
+	# theta = np.arccos(c)
+	theta = math.acos(c)
 
 	if s < 0:
 		theta *= -1
@@ -130,19 +130,19 @@ def solve(x, y, z):
 
 	R, ang_P = cart2polar(r, z)
 
-	print("r = " + str(r))
-	print("z = " + str(z))
-	print("post cart2polar R = " + str(R))
+	# print("r = " + str(r))
+	# print("z = " + str(z))
+	# print("post cart2polar R = " + str(R))
 
 	C = cosangle(R, L1, L2)
 	B = cosangle(L2, L1, R)
 
 	if B == None:
 		print("calculate B fail")
-		print("L2 = "+ str(L2))
-		print("L1 = " + str(L1))
-		print("R = " + str(R))
-		print("B = " + str(B))
+		# print("L2 = "+ str(L2))
+		# print("L1 = " + str(L1))
+		# print("R = " + str(R))
+		# print("B = " + str(B))
 		return None, None, None
 	if C == None:
 		print("calculate C fail")
@@ -174,10 +174,10 @@ def ang2pulse(servo, angle):
 	if servo == ROTATE:
 		us_per_angle = (ROTATE_MAX - ROTATE_MIN) / (np.pi)
 		pulse = ROTATE_MID - (us_per_angle * angle)
-		if pulse > 2250: 
-			pulse = 2000
-		if pulse < 750:
-			pulse = 750
+		if pulse > 2350: 
+			pulse = 2350
+		if pulse < 700:
+			pulse = 700
 
 	
 	if servo == SHOULDER:
@@ -192,8 +192,8 @@ def ang2pulse(servo, angle):
 	if servo == ELBOW:
 		us_per_angle = (ELBOW_OUT - ELBOW_BENT) / ELBOW_RANGE
 		pulse = 1500 + (us_per_angle * angle)
-		if pulse > 2000: 
-			pulse = 2000
+		if pulse > 1700: 
+			pulse = 1700
 		if pulse < 750:
 			pulse = 750
 
@@ -222,16 +222,104 @@ def close_gripper():
 # to the next using acceleration and deaccleeration phases of each 
 # servo limits
 
+# def move_to_pos(goal_rotate, goal_shoulder, goal_elbow):
+# 	global ROTATE
+# 	global SHOULDER
+# 	global ELBOW
+
+# 	curr_rotate = pi.get_servo_pulsewidth(ROTATE)  # get the pulse
+# 	curr_shoulder = pi.get_servo_pulsewidth(SHOULDER)
+# 	curr_elbow = pi.get_servo_pulsewidth(ELBOW)
+
+# 	time_step = 2  # how long each time step is
+# 	time_delay = 0.001   # originally: 0.001
+# 	num_steps = int(time_step / time_delay)  # step # with delay
+
+#     # Acceleration and deceleration parameters
+# 	acceleration_steps = num_steps // 10  # ratio of acceleration steps
+# 	deceleration_steps = acceleration_steps
+
+# 	# if its already there, just stay there 
+# 	goal_rotate = max(500, min(2500, goal_rotate))  # this is also pulse
+# 	goal_shoulder = max(500, min(2500, goal_shoulder))
+# 	goal_elbow = max(500, min(2500, goal_elbow))
+
+	# # Acceleration phase
+	# for i in range(acceleration_steps):
+	# 	curr_rotate = pi.get_servo_pulsewidth(ROTATE)
+	# 	curr_shoulder = pi.get_servo_pulsewidth(SHOULDER)
+	# 	curr_elbow = pi.get_servo_pulsewidth(ELBOW)
+
+	# 	step_size_rotate = (goal_rotate - curr_rotate) / (acceleration_steps - i)
+	# 	curr_rotate += step_size_rotate
+	# 	curr_rotate = max(500, min(2500, curr_rotate))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(ROTATE, int(curr_rotate))
+
+	# 	step_size_shoulder = (goal_shoulder - curr_shoulder) / (acceleration_steps - i)
+	# 	curr_shoulder += step_size_shoulder
+	# 	curr_shoulder = max(500, min(2500, curr_shoulder))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(SHOULDER, int(curr_shoulder))
+
+	# 	step_size_elbow = (goal_elbow - curr_elbow) / (acceleration_steps - i)
+	# 	curr_elbow += step_size_elbow
+	# 	curr_elbow = max(500, min(2500, curr_elbow))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(ELBOW, int(curr_elbow))
+
+	# 	time.sleep(time_delay)
+
+	# # Constant velocity phase
+	# for i in range(num_steps - 2 * acceleration_steps):
+	# 	curr_rotate = pi.get_servo_pulsewidth(ROTATE)
+	# 	curr_shoulder = pi.get_servo_pulsewidth(SHOULDER)
+	# 	curr_elbow = pi.get_servo_pulsewidth(ELBOW)
+
+	# 	curr_rotate = goal_rotate  # Set current position to goal directly
+	# 	curr_rotate = max(500, min(2500, curr_rotate))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(ROTATE, int(curr_rotate))
+
+	# 	curr_shoulder = goal_shoulder  # Set current position to goal directly
+	# 	curr_shoulder = max(500, min(2500, curr_shoulder))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(SHOULDER, int(curr_shoulder))
+
+	# 	curr_elbow = goal_elbow  # Set current position to goal directly
+	# 	curr_elbow = max(500, min(2500, curr_elbow))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(ELBOW, int(curr_elbow))
+	# 	time.sleep(time_delay) # 0.001
+
+	# # Deceleration phase
+	# for i in range(deceleration_steps):
+
+	# 	curr_rotate = pi.get_servo_pulsewidth(ROTATE)
+	# 	curr_shoulder = pi.get_servo_pulsewidth(SHOULDER)
+	# 	curr_elbow = pi.get_servo_pulsewidth(ELBOW)
+
+	# 	step_size_rotate = (goal_rotate - curr_rotate) / (deceleration_steps - i)
+	# 	curr_rotate += step_size_rotate
+	# 	curr_rotate = max(500, min(2500, curr_rotate))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(ROTATE, int(curr_rotate))
+
+	# 	step_size_shoulder = (goal_shoulder - curr_shoulder) / (deceleration_steps - i)
+	# 	curr_shoulder += step_size_shoulder
+	# 	curr_shoulder = max(500, min(2500, curr_shoulder))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(SHOULDER, int(curr_shoulder))
+
+	# 	step_size_elbow = (goal_elbow - curr_elbow) / (deceleration_steps - i)
+	# 	curr_elbow += step_size_elbow
+	# 	curr_elbow = max(500, min(2500, curr_elbow))  # Ensure pulsewidth stays within valid range
+	# 	pi.set_servo_pulsewidth(ELBOW, int(curr_elbow))
+
+	# 	time.sleep(time_delay)
+
 def move_to_pos(servo, goal):
     curr = pi.get_servo_pulsewidth(servo)
-    time_step = 1.5  # how long each time step is
-    num_steps = int(time_step / 0.001)  # step # with delay
+    time_step = 1.5  # Increase the time step for slower movement
+    num_steps = int(time_step / 0.001)  # Number of steps with delay
 
     # Acceleration and deceleration parameters
-    acceleration_steps = num_steps // 10  # ratio of acceleration steps
+    acceleration_steps = num_steps // 10  # Ratio of acceleration steps
     deceleration_steps = acceleration_steps
 
-    # if its already tehre, just stay there 
+    # If it's already there, just stay there 
     goal = max(500, min(2500, goal))
 
     # Acceleration phase
@@ -244,7 +332,7 @@ def move_to_pos(servo, goal):
 
     # Constant velocity phase
     for i in range(num_steps - 2 * acceleration_steps):
-        curr = goal  # Set current position to goal directly
+        curr = goal  # Set the current position to goal directly
         curr = max(500, min(2500, curr))  # Ensure pulsewidth stays within valid range
         pi.set_servo_pulsewidth(servo, int(curr))
         time.sleep(0.001)
@@ -257,6 +345,8 @@ def move_to_pos(servo, goal):
         pi.set_servo_pulsewidth(servo, int(curr))
         time.sleep(0.001)
 
+
+
 # go to specified x y z coordinate
 def go_to_coor(x, y, z):
 	global ROTATE
@@ -265,15 +355,12 @@ def go_to_coor(x, y, z):
 
 	a0, a1, a2 = solve(x, y, z)
 	if a0 != None:
-		move_to_pos(ROTATE, ang2pulse(ROTATE, a0))
-		move_to_pos(SHOULDER, ang2pulse(SHOULDER, a1))
-		move_to_pos(ELBOW, ang2pulse(ELBOW, a2))
-
-		# pi.set_servo_pulsewidth(ROTATE, ang2pulse(ROTATE, a0))
-		# pi.set_servo_pulsewidth(SHOULDER, ang2pulse(SHOULDER, a1))
-		# pi.set_servo_pulsewidth(ELBOW, ang2pulse(ELBOW, a2))
-
-		time.sleep(0.5)
+		pi.set_servo_pulsewidth(SHOULDER, ang2pulse(SHOULDER, a1))
+		time.sleep(0.2)
+		pi.set_servo_pulsewidth(ELBOW, ang2pulse(ELBOW, a2))
+		time.sleep(0.2)
+		pi.set_servo_pulsewidth(ROTATE, ang2pulse(ROTATE, a0))
+		time.sleep(0.2)
 		stop_servos()
 		time.sleep(0.5)
 	else: 
@@ -293,64 +380,49 @@ def lemons():
 	# reset_to_center()
 
 def blueberries():
-	# far left
-	go_to_coor(-250,0,75)
-	# reset_to_center()
+	open_gripper()
+	go_to_coor(10,205,10) # fruit location
+	time.sleep(0.3)
+	close_gripper()
+	go_to_coor(-120,100,150) #blueberry box coordination
+	open_gripper()
+	time.sleep(0.1)
+	go_to_coor(10,100,50)
 
 def raspberries():
-	# close right
-	go_to_coor(190,-50,75) 
-	# reset_to_center()
+	open_gripper()
+	go_to_coor(10,205,10) # fruit location
+	time.sleep(0.3)
+	close_gripper()
+	go_to_coor(20,-10,80) #raspberry box coordination
+	open_gripper()
+	time.sleep(0.1)
+	go_to_coor(10,100,50)
+
 
 def oranges():
-	# far right
 	go_to_coor(190,-170,75) 
-	# reset_to_center()
 
-#--------------TEST THE INVERSE KINEMATICS CODE!!-----------#
-try:
-	# initial initialization
-	# go_to_coor(10,100,50)
-	# reset_to_center()
 
-	# lemons()
-	# time.sleep(0.05)
 
-	blueberries()
-	# reset_to_center()
-	# time.sleep(0.05)
+# #--------------TEST THE INVERSE KINEMATICS 	CODE!!-----------#
+# try:
+# 	# initial initialization
 
-	# raspberries()
-	# reset_to_center()
-	# time.sleep(0.05)
+# 	## DEFINING QUADRANTS
+# 	# go_to_coor(10,100,50)  # center position 12/7
 
-	# reset_to_center()
-	# blueberries()
+# 	# go_to_coor(10,205,10) # location to pick up the fruit 12/7
 
-	# reset_to_center()
-	# raspberries()
+# 	# go_to_coor(20,-10,80) #raspberries 12/7
 
-	# reset_to_center()
-	# oranges()
+# 	# go_to_coor(50,60,80) # oranges 12/7 
+
+# 	# go_to_coor(-30,-40,80) #lemons + limes 12/7
+
+# 	# go_to_coor(-120,100,150) #blueberries 12/7
+# 	open_gripper()
+# 	close_gripper()
 	
-finally:
-	stop_servos()
-
-#first left boundary box 
-# go_to_coor(-130,0,75) 
-
-#super far left
-# go_to_coor(-250,0,75) 
-
-#first right boundary box 
-# go_to_coor(190,-50,75) 
-
-#super far right
-# go_to_coor(190,-170,75) 
-
-
-# COORDINATES 
-# go_to_coor(10, 200, -10) # middle 
-# go_to_coor(10,100,50) # resting middle position
-
-
+# finally:
+# 	stop_servos()
