@@ -497,7 +497,7 @@ while(1):
     _, imageFrame = webcam.read() 
     
     x = 168 
-    y = 136
+    y = 110
     position = (x, y)
     ## create a range of +- 15 in case it moves around
 
@@ -511,27 +511,21 @@ while(1):
     
     detect_blueberry(imageFrame, position) 
     if blue_flag: 
-        #blue movemnet funtion
-        _, imageFrame = webcam.read() 
-        ik.blueberries()
-        time.sleep(3)
-        _, imageFrame = webcam.read() 
+        #blue movemnet funtion 
         print('blue')
         blue_flag = False
+        ik.blueberries()
         _, imageFrame = webcam.read() 
-        time.sleep(3)
+        time.sleep(12)
 
     detect_raspberry(imageFrame, position) 
     if rasp_flag: 
         #rasp movemnet funtion
-        _, imageFrame = webcam.read() 
-        ik.raspberries()
-        time.sleep(3)
-        _, imageFrame = webcam.read() 
         print('rasp')
         rasp_flag = False
+        ik.raspberries()
         _, imageFrame = webcam.read() 
-        time.sleep(3)
+        time.sleep(12)
     
     detect_lemons(imageFrame, position) 
     if lem_flag: 
