@@ -19,8 +19,8 @@ import numpy as np
 #-------------- VARIABLES -----------#
 
 GRIPPER = 26
-GRIPPER_OPEN = 1500
-GRIPPER_CLOSE = 2500
+GRIPPER_OPEN = 1400
+GRIPPER_CLOSE = 2000
 
 # shoulder: right servo (when gripper is facing away from you)
 # outstretches the arm
@@ -158,13 +158,12 @@ def solve(x, y, z):
 def stop_servos():
 	global ELBOW
 	global SHOULDER
-	global GRIPPER
 	global ROTATE
 
 	pi.set_servo_pulsewidth(ELBOW, 0)
 	pi.set_servo_pulsewidth(SHOULDER, 0)
-	pi.set_servo_pulsewidth(GRIPPER, 0)
 	pi.set_servo_pulsewidth(ROTATE, 0)
+
 
 # each servo has slightly different range so calibrate based on that
 # angle given in radians
@@ -214,6 +213,10 @@ def close_gripper():
 	global GRIPPER_CLOSE
 	pi.set_servo_pulsewidth(GRIPPER, GRIPPER_CLOSE)
 	time.sleep(1)
+
+def stop_gripper():
+	global GRIPPER
+	pi.set_servo_pulsewidth(GRIPPER, 0)
 
 
 #--------------SMOOTHNESS + MOVEMENT -----------#
@@ -366,42 +369,77 @@ def go_to_coor(x, y, z):
 	else: 
 		print("SOLVE FAILED")
 
+def go_to_coor_center(x, y, z):
+	global ROTATE
+	global SHOULDER
+	global ELBOW
+
+	a0, a1, a2 = solve(x, y, z)
+	if a0 != None:
+		pi.set_servo_pulsewidth(ROTATE, ang2pulse(ROTATE, a0))
+		time.sleep(0.2)
+		pi.set_servo_pulsewidth(SHOULDER, ang2pulse(SHOULDER, a1))
+		time.sleep(0.2)
+		pi.set_servo_pulsewidth(ELBOW, ang2pulse(ELBOW, a2))
+		time.sleep(0.2)
+		stop_servos()
+		time.sleep(0.5)
+	else: 
+		print("SOLVE FAILED")
+
 #--------------ARM LOCATIONS - CENTER + BOXES -------------#
 
 def reset_to_center():
 	# dont turn 
 	time.sleep(0.1)
-	go_to_coor(10,100,50)
+	go_to_coor_center(10,150,70)
 	time.sleep(0.1)
 
 def lemons():
-	# close left
-	go_to_coor(-130,0,75) 
-	# reset_to_center()
+	open_gripper()
+	go_to_coor(10,225,30) # fruit location (z= 20 for floor, 50 for on mount)
+	time.sleep(0.3)
+	close_gripper()
+	go_to_coor(-30,-40,80) # lemon lime box
+	open_gripper()
+	stop_gripper()
+	time.sleep(0.1)
+	reset_to_center()
+
 
 def blueberries():
 	open_gripper()
-	go_to_coor(10,205,10) # fruit location
+	go_to_coor(10,225,30) # fruit location (z= 20 for floor, 50 for on mount)
 	time.sleep(0.3)
 	close_gripper()
 	go_to_coor(-120,100,150) #blueberry box coordination
 	open_gripper()
+	stop_gripper()
 	time.sleep(0.1)
-	go_to_coor(10,100,50)
+	reset_to_center()
 
 def raspberries():
 	open_gripper()
-	go_to_coor(10,205,10) # fruit location
+	go_to_coor(10,225,30) # fruit location
 	time.sleep(0.3)
 	close_gripper()
 	go_to_coor(20,-10,80) #raspberry box coordination
 	open_gripper()
+	stop_gripper()
 	time.sleep(0.1)
-	go_to_coor(10,100,50)
+	reset_to_center()
 
 
 def oranges():
-	go_to_coor(190,-170,75) 
+	open_gripper()
+	go_to_coor(10,225,30) # fruit location (z= 20 for floor, 50 for on mount)
+	time.sleep(0.3)
+	close_gripper()
+	go_to_coor(50,60,80) # oranges box
+	open_gripper()
+	stop_gripper()
+	time.sleep(0.1)
+	reset_to_center()
 
 
 
@@ -420,9 +458,15 @@ def oranges():
 
 # 	# go_to_coor(-30,-40,80) #lemons + limes 12/7
 
-# 	# go_to_coor(-120,100,150) #blueberries 12/7
-# 	open_gripper()
-# 	close_gripper()
+# go_to_coor(-120,100,150) #blueberries 12/7
+# reset_to_center()
+# stop_servos()
+# close_gripper()
+open_gripper()
+# stop_gripper()
+# go_to_coor(10,205,40)
+
+# go_to_coor(10,230,30)
 	
 # finally:
 # 	stop_servos()
