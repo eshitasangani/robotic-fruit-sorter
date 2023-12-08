@@ -6,4 +6,4 @@ Collaborators - Eshita, Mattie, Janeth
 
 
 
-![Fuzzy Fruit Picker](image.jpg)
+![Fuzzy Fruit Picker](./image.jpg)
