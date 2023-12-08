@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 # Python code for Multiple Color Detection + Integrated with Inverse Kinematics
+import os
+# os.system("sudo pigpiod")
 
 import numpy as np 
 import cv2 
@@ -9,7 +11,8 @@ import ik
 import time
 import RPi.GPIO as GPIO
 import sys
-import os
+import pygame
+
 
 webcam = cv2.VideoCapture(-1) 
 
@@ -26,13 +29,22 @@ detected_fruit = ""
 code_run = True
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(21, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(17, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
+# external button to quit program and return to console
 def callback_21(channel):
     global code_run 
     code_run = False
     sys.quit(0)
 
+# button 17 on piTFT to shutdown pi
+def callback_17(channel):
+    global code_run 
+    code_run = False
+    os.system("sudo shutdown -h now")
+
 GPIO.add_event_detect(21, GPIO.FALLING, callback=callback_21, bouncetime=300)
+GPIO.add_event_detect(17, GPIO.FALLING, callback=callback_17, bouncetime=300)
 
 # -------------------------------------- FRUIT MASKS ---------------------------------------------
 _, imageFrame = webcam.read() 
@@ -267,44 +279,23 @@ def detect_fruit(position):
                     org_flag = True
                     return
 
-## MOVEMENT FUNCITONS FROM IK.PY 
-
-# ik.go_to_coor(10,100,50)  # center position 12/7
-
-# time.sleep(0.1)
-
-# ik.go_to_coor(10,205,10) # location to pick up the fruit 12/7
-
-# ik.go_to_coor(20,-10,80) #raspberries 12/7
-
-# ik.go_to_coor(50,60,80) # oranges 12/7 
-
-# ik.go_to_coor(-30,-40,80) #lemons + limes 12/7
-
-# ik.go_to_coor(-120,100,150) #blueberries 12/7
-
 # Start a while loop 
 while(code_run): 
 
     # Reading the video from the 
     _, imageFrame = webcam.read() 
-    # print("image updated")
+
     
     x = 168 
     y = 100
     position = (x, y)
-    ## create a range of +- 15 in case it moves around
 
-# for i in range(x - 15, x + 15): 
-
-#     for j in range(y - 15, y + 15): 
-
-        # position = (i, j) # adjusted function
     
-        # functions for each fruit box
+    #functions for each fruit box
     detect_fruit(position) 
     if (rasp_flag):
         print('rasp')
+
         ik.raspberries()
         for i in range(5):
             _, imageFrame = webcam.read() 
@@ -313,14 +304,15 @@ while(code_run):
         rasp_flag = False
     elif (blue_flag):
         print('blue')
+
         ik.blueberries()
         for i in range(5):
             _, imageFrame = webcam.read() 
             time.sleep(1)
-        # print("image updated")
         blue_flag = False
     elif (lem_lim_flag):
         print('lem/lim')
+
         ik.lemons()
         for i in range(5):
             _, imageFrame = webcam.read() 
@@ -334,7 +326,5 @@ while(code_run):
             time.sleep(1)
         org_flag = False
     
-    # cv2.imshow("Multiple Color Detection in Real-Time", imageFrame) 
-
 cv2.destroyAllWindows() 
 GPIO.cleanup()
