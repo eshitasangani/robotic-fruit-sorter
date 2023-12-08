@@ -15,7 +15,6 @@ import pigpio
 import time
 import math
 import numpy as np
-
 #-------------- VARIABLES -----------#
 
 GRIPPER = 26
@@ -58,8 +57,6 @@ curr_gripper = 0
 L1 = 105  # shoulder to elbow len
 L2 = 85  # elbow to wrist len
 L3 = 95  # len from wrist to hand plus base center to shoulder
-
-
 
 #-------------- CALCULATIONS FOR MOVEMENT -----------#
 
@@ -268,7 +265,7 @@ def reset_to_center():
 
 def lemons():
 	open_gripper()
-	go_to_coor(10,225,30) # fruit location (z= 20 for floor, 50 for on mount)
+	go_to_coor(35,240,60) # fruit location (z= 20 for floor, 50 for on mount)
 	time.sleep(0.3)
 	close_gripper()
 	go_to_coor(-30,-40,80) # lemon lime box
@@ -280,7 +277,7 @@ def lemons():
 
 def blueberries():
 	open_gripper()
-	go_to_coor(10,225,30) # fruit location (z= 20 for floor, 50 for on mount)
+	go_to_coor(35,240,60) # fruit location (z= 20 for floor, 50 for on mount)
 	time.sleep(0.3)
 	close_gripper()
 	go_to_coor(-120,100,150) #blueberry box coordination
@@ -291,7 +288,7 @@ def blueberries():
 
 def raspberries():
 	open_gripper()
-	go_to_coor(10,225,30) # fruit location
+	go_to_coor(35,240,60) # fruit location
 	time.sleep(0.3)
 	close_gripper()
 	go_to_coor(20,-10,80) #raspberry box coordination
@@ -303,7 +300,7 @@ def raspberries():
 
 def oranges():
 	open_gripper()
-	go_to_coor(10,225,30) # fruit location (z= 20 for floor, 50 for on mount)
+	go_to_coor(35,240,60) # fruit location (z= 20 for floor, 50 for on mount)
 	time.sleep(0.3)
 	close_gripper()
 	go_to_coor(50,60,80) # oranges box
