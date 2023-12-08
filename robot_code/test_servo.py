@@ -5,6 +5,7 @@ import time
 SHOULDER_PIN = 5
 ELBOW_PIN = 13
 ROTATE_PIN = 16
+GRIPPER_PIN = 26
 
 # Function to move a servo through its full range
 def test_servo(pwm, pin, name):
@@ -32,12 +33,14 @@ try:
     test_servo(pi, SHOULDER_PIN, "shoulder")
     test_servo(pi, ELBOW_PIN, "elbow")
     test_servo(pi, ROTATE_PIN, "rotate")
+    test_servo(pi, GRIPPER_PIN, "gripper")
 
 finally:
     # Stop the servos
     pi.set_servo_pulsewidth(SHOULDER_PIN, 0)
     pi.set_servo_pulsewidth(ELBOW_PIN, 0)
     pi.set_servo_pulsewidth(ROTATE_PIN, 0)
+    pi.set_servo_pulsewidth(GRIPPER_PIN, 0)
 
     # Disconnect from pigpio
     pi.stop()
