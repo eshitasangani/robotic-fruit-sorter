@@ -8,4 +8,4 @@ Collaborators - Eshita, Mattie, Janeth
 
 ![Fuzzy Fruit Picker](./image.jpg)
 
-![image](https://github.com/eshitasangani/robotic-fruit-sorter/assets/19964130/7371dac4-4cbc-46be-b0e2-857d311cc10c)
+![image](https://github.com/eshitasangani/robotic-fruit-sorter/image.jpg)
